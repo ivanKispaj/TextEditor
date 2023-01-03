@@ -208,7 +208,7 @@ final class InputAccessoryView: UIInputView {
     
     private func setupAccessoryView() {
         accessoryContentView.addArrangedSubview(toolbar)
-        if accessorySections.contains(.color) && self.isShowHideColorButton {
+        if accessorySections.contains(.color) {
             accessoryContentView.addArrangedSubview(colorPaletteBar)
         }
         
@@ -378,8 +378,10 @@ final class InputAccessoryView: UIInputView {
     @objc private func showHideColorPalete(_ button: UIButton) {
         if self.isShowHideColorButton {
             self.selectedColor = button.tintColor
+            
         }
         self.isShowHideColorButton.toggle()
+        self.colorPaletteBar.isHidden.toggle()
     }
     
     @objc private func showFontPalette(_ button: UIButton) {
