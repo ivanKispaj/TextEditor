@@ -16,6 +16,8 @@ public enum EditorSection: CaseIterable {
     case image
     case color
     case keyboard
+    case colorPalete
+    
 }
 
 // Text format:largeHeader,header,smallHeader,plainText

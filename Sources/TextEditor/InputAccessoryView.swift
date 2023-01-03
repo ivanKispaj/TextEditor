@@ -155,6 +155,7 @@ final class InputAccessoryView: UIInputView {
         button.backgroundColor = .clear
         button.widthAnchor.constraint(equalToConstant: buttonWidth).isActive = true
         button.heightAnchor.constraint(equalTo: button.widthAnchor, multiplier: 1 / 1).isActive = true
+        return button
     }()
     
     
@@ -243,6 +244,10 @@ final class InputAccessoryView: UIInputView {
         
         if accessorySections.contains(.image) {
             stackView.addArrangedSubview(insertImageButton)
+        }
+        
+        if accessorySections.contains(.colorPalete) {
+            stackView.addArrangedSubview(showHideColorPalete)
         }
         
         stackView.addArrangedSubview(separator)
