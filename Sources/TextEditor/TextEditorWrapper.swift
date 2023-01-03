@@ -237,7 +237,6 @@ struct TextEditorWrapper: UIViewControllerRepresentable {
             imagePicker.allowsEditing = true
             imagePicker.sourceType = sourceType
             parent.isImagePicker = true
-            imagePicker.present(imagePicker, animated: true)
             parent.controller.navigationController?.present(imagePicker, animated: true)
           //  parent.controller.present(imagePicker, animated: true, completion: nil)
         }
@@ -373,12 +372,6 @@ struct TextEditorWrapper: UIViewControllerRepresentable {
         }
         
         func textViewDidEndEditing(_ textView: UITextView) {
-            
-            if textView.attributedText.string == "" || textView.attributedText.string == parent.placeholder {
-                           textView.attributedText = NSAttributedString(string: parent.placeholder)
-                       } else {
-                           parent.onCommit(textView.attributedText)
-                       }
             
             if !parent.isImagePicker {
                 parent.onCommit(textView.attributedText)
