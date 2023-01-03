@@ -25,7 +25,7 @@ struct TextEditorWrapper: UIViewControllerRepresentable {
     private var defaultFontSize: CGFloat = 24
     private let defaultFontName = "AvenirNext-Regular"
     private let onCommit: ((NSAttributedString) -> Void)
-    
+    private var isImagePicker: Bool = false
     private var isHeader: Bool = false
     private var defaultFont: UIFont {
         return UIFont(name: defaultFontName, size: defaultFontSize) ?? .systemFont(ofSize: defaultFontSize)
@@ -154,6 +154,7 @@ struct TextEditorWrapper: UIViewControllerRepresentable {
                 parent.textView.attributedText = newString
                 textViewDidChange(parent.textView)
             }
+            parent.isImagePicker = false
             picker.dismiss(animated: true, completion: nil)
         }
         
@@ -235,6 +236,7 @@ struct TextEditorWrapper: UIViewControllerRepresentable {
             imagePicker.delegate = self
             imagePicker.allowsEditing = true
             imagePicker.sourceType = sourceType
+            parent.isImagePicker = true
             parent.controller.present(imagePicker, animated: true, completion: nil)
         }
         
@@ -369,7 +371,9 @@ struct TextEditorWrapper: UIViewControllerRepresentable {
         }
         
         func textViewDidEndEditing(_ textView: UITextView) {
-            parent.onCommit(textView.attributedText)
+            if !parent.isImagePicker {
+                parent.onCommit(textView.attributedText)
+            }
         }
         
         func textViewDidChange(_ textView: UITextView) {
