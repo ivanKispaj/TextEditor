@@ -8,7 +8,12 @@
 import SwiftUI
 
 @available(iOS 15.0, *)
-public struct TextEditor: View {
+public struct TextEditor: View , Equatable {
+    
+    public static func == (lhs: TextEditor, rhs: TextEditor) -> Bool {
+        true
+    }
+    
     private var deviceFrame: CGRect
     @State var dynamicHeight: CGFloat = 100
     private let attributedText: NSMutableAttributedString

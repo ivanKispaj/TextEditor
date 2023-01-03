@@ -152,6 +152,7 @@ final class InputAccessoryView: UIInputView {
         button.setImage(UIImage(systemName: "paintpalette", withConfiguration: colorConf), for: .normal)
         // button.tintColor = color
         button.backgroundColor = .clear
+        button.menu = menu
         button.widthAnchor.constraint(equalToConstant: buttonWidth).isActive = true
         button.heightAnchor.constraint(equalToConstant: buttonHeight).isActive = true
         return button
@@ -224,6 +225,42 @@ final class InputAccessoryView: UIInputView {
             accessoryContentView.topAnchor.constraint(equalTo: self.topAnchor),
             accessoryContentView.bottomAnchor.constraint(equalTo: self.bottomAnchor)
         ])
+    }
+    
+    // MARK: - Toolbar
+    private var toolbar: UIStackView {
+        let stackView = UIStackView()
+        
+        if accessorySections.contains(.fontFormat) {
+            stackView.addArrangedSubview(fontFormatButton)
+        }
+        if accessorySections.contains(.fontStyle) {
+            stackView.addArrangedSubview(textStyleButton)
+        }
+        
+        if accessorySections.contains(.textAlignment) {
+            stackView.addArrangedSubview(alignmentButton)
+        }
+        
+        if accessorySections.contains(.image) {
+            stackView.addArrangedSubview(insertImageButton)
+        }
+        if accessorySections.contains(.paleteColor) {
+            accessoryContentView.addArrangedSubview(paintPaletteButton)
+        }
+        
+        stackView.addArrangedSubview(separator)
+        
+        if accessorySections.contains(.keyboard) {
+            stackView.addArrangedSubview(keyboardHideButton)
+        }
+       
+        stackView.axis = .horizontal
+        stackView.alignment = .center
+        stackView.spacing = padding
+        stackView.distribution = .equalCentering
+        
+        return stackView
     }
     
     // Menu to choose from: large header, header, small header and plain text
@@ -338,18 +375,7 @@ final class InputAccessoryView: UIInputView {
         let menu = UIMenu(options: .displayInline, children: [
             UIDeferredMenuElement.uncached { [weak self] completion in
                 var actions: [UIAction] = []
-                //
-                //                    UIAction(title: "Underline",  image: UIImage(systemName: "underline"), state: self?.stateTextFormat.underline ?? UIAction.State.off) { [weak self] action in
-                //                        if self?.stateTextFormat.underline == .off {
-                //                            self?.stateTextFormat.underline = .on
-                //
-                //                        } else {
-                //                            self?.stateTextFormat.underline = .off
-                //                        }
-                //                        self?.delegate.textUnderline()
-                //                    },
-                //   ]
-                
+               
                 for color in self?.textColors ?? [] {
                     
                     let action = UIAction(image: UIImage(systemName: "circle.fill")?.withTintColor(color)) { pressAction in
@@ -366,38 +392,7 @@ final class InputAccessoryView: UIInputView {
         
     }
     
-    // MARK: - Toolbar
-    private var toolbar: UIStackView {
-        let stackView = UIStackView()
-        
-        if accessorySections.contains(.fontFormat) {
-            stackView.addArrangedSubview(fontFormatButton)
-        }
-        if accessorySections.contains(.fontStyle) {
-            stackView.addArrangedSubview(textStyleButton)
-        }
-        
-        if accessorySections.contains(.textAlignment) {
-            stackView.addArrangedSubview(alignmentButton)
-        }
-        
-        if accessorySections.contains(.image) {
-            stackView.addArrangedSubview(insertImageButton)
-        }
-        stackView.addArrangedSubview(separator)
-        if accessorySections.contains(.keyboard) {
-            stackView.addArrangedSubview(keyboardHideButton)
-        }
-        if accessorySections.contains(.paleteColor) {
-            accessoryContentView.addArrangedSubview(paintPaletteButton)
-        }
-        stackView.axis = .horizontal
-        stackView.alignment = .center
-        stackView.spacing = padding
-        stackView.distribution = .equalCentering
-        
-        return stackView
-    }
+
     
     // MARK: - Button Actions
     
