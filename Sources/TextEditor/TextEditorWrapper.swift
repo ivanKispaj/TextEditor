@@ -141,7 +141,7 @@ struct TextEditorWrapper: UIViewControllerRepresentable {
         }
         
         // MARK: - Image Picker
-
+        
         func imagePickerController(_ picker: UIImagePickerController, didFinishPickingMediaWithInfo info: [UIImagePickerController.InfoKey : Any]) {
             if let img = info[UIImagePickerController.InfoKey.editedImage] as? UIImage, var image = img.roundedImageWithBorder(color: .secondarySystemBackground) {
                 textViewDidBeginEditing(parent.textView)
@@ -237,7 +237,8 @@ struct TextEditorWrapper: UIViewControllerRepresentable {
             imagePicker.allowsEditing = true
             imagePicker.sourceType = sourceType
             parent.isImagePicker = true
-            parent.controller.present(imagePicker, animated: true, completion: nil)
+            imagePicker.present(imagePicker, animated: true)
+          //  parent.controller.present(imagePicker, animated: true, completion: nil)
         }
         
         func hideKeyboard() {
@@ -371,6 +372,13 @@ struct TextEditorWrapper: UIViewControllerRepresentable {
         }
         
         func textViewDidEndEditing(_ textView: UITextView) {
+            
+            if textView.attributedText.string == "" || textView.attributedText.string == parent.placeholder {
+                           textView.attributedText = NSAttributedString(string: parent.placeholder)
+                       } else {
+                           parent.onCommit(textView.attributedText)
+                       }
+            
             if !parent.isImagePicker {
                 parent.onCommit(textView.attributedText)
             }
