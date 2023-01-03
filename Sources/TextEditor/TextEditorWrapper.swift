@@ -238,6 +238,7 @@ struct TextEditorWrapper: UIViewControllerRepresentable {
             imagePicker.sourceType = sourceType
             parent.isImagePicker = true
             imagePicker.present(imagePicker, animated: true)
+            parent.controller.navigationController?.present(imagePicker, animated: true)
           //  parent.controller.present(imagePicker, animated: true, completion: nil)
         }
         
