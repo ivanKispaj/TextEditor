@@ -380,7 +380,7 @@ final class InputAccessoryView: UIInputView {
         if self.isShowHideColorButton {
             self.selectedColor = button.tintColor
             self.showHideColorPalete.tintColor = button.tintColor
-            
+            delegate.textColor(color: button.tintColor)
         }
         self.isShowHideColorButton.toggle()
         self.colorPaletteBar.isHidden.toggle()
@@ -424,10 +424,6 @@ final class InputAccessoryView: UIInputView {
     
     @objc private func insertImage(_ button: UIButton) {
         delegate.insertImage()
-    }
-    
-    @objc private func selectColor(_ button: UIButton) {
-        delegate.textColor(color: button.tintColor)
     }
     
     private func selectedButton(_ button: UIButton, isSelected: Bool) {
