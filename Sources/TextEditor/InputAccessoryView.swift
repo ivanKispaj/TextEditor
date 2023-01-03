@@ -11,18 +11,19 @@ import UIKit
 
 @available(iOS 15.0, *)
 final class InputAccessoryView: UIInputView {
-    
+        
+    private var isShowHideColorButton: Bool = false
     private var stateTextFormat: SelecrtedTextFormat
     private var stateTextStyle: SelectedTextStyle
     private(set) var accessorySections: Array<EditorSection>
     private var textFontName: String = "AvenirNext-Regular"
     private let baseHeight: CGFloat = 44
     private let padding: CGFloat = 15
-    private let buttonWidth: CGFloat = 50
-    private let buttonHeight: CGFloat = 50
+    private let buttonWidth: CGFloat = 45
+    private let buttonHeight: CGFloat = 45
     private let cornerRadius: CGFloat = 6
     private let edgeInsets: CGFloat = 5
-    private let selectedColor = UIColor.separator
+    private var selectedColor = UIColor(named: "whiteBlack") ?? UIColor.systemGray
     private let containerBackgroundColor: UIColor = .systemBackground
     private let colorConf = UIImage.SymbolConfiguration(pointSize: 22, weight: .regular)
     private var imageConf: UIImage.SymbolConfiguration {
@@ -104,7 +105,7 @@ final class InputAccessoryView: UIInputView {
         button.addTarget(self, action: #selector(alignText(_:)), for: .touchUpInside)
         button.backgroundColor = .clear
         button.widthAnchor.constraint(equalToConstant: buttonWidth).isActive = true
-        button.heightAnchor.constraint(equalToConstant: buttonHeight).isActive = true
+        button.heightAnchor.constraint(equalTo: button.widthAnchor, multiplier: 1 / 1).isActive = true
         
         return button
     }()
@@ -115,7 +116,7 @@ final class InputAccessoryView: UIInputView {
         button.addTarget(self, action: #selector(insertImage(_:)), for: .touchUpInside)
         button.backgroundColor = .clear
         button.widthAnchor.constraint(equalToConstant: buttonWidth).isActive = true
-        button.heightAnchor.constraint(equalToConstant: buttonHeight).isActive = true
+        button.heightAnchor.constraint(equalTo: button.widthAnchor, multiplier: 1 / 1).isActive = true
         
         return button
     }()
@@ -126,7 +127,7 @@ final class InputAccessoryView: UIInputView {
         button.addTarget(self, action: #selector(showFontPalette(_:)), for: .touchUpInside)
         button.backgroundColor = .clear
         button.widthAnchor.constraint(equalToConstant: buttonWidth).isActive = true
-        button.heightAnchor.constraint(equalToConstant: buttonHeight).isActive = true
+        button.heightAnchor.constraint(equalTo: button.widthAnchor, multiplier: 1 / 1).isActive = true
         
         return button
     }()
@@ -146,16 +147,14 @@ final class InputAccessoryView: UIInputView {
     ]
     
     
-    private lazy var paintPaletteButton: UIButton = {
-        let menu = getPaintPaletteMenu()
+    private lazy var showHideColorPalete: UIButton = {
         let button = UIButton()
-        button.setImage(UIImage(systemName: "paintpalette", withConfiguration: colorConf), for: .normal)
-        // button.tintColor = color
+        button.setImage(UIImage(systemName: "paintpalette", withConfiguration: imageConf), for: .normal)
+        button.addTarget(self, action: #selector(showHideColorPalete(_:)), for: .touchUpInside)
+        button.tintColor = self.selectedColor
         button.backgroundColor = .clear
-        button.menu = menu
         button.widthAnchor.constraint(equalToConstant: buttonWidth).isActive = true
-        button.heightAnchor.constraint(equalToConstant: buttonHeight).isActive = true
-        return button
+        button.heightAnchor.constraint(equalTo: button.widthAnchor, multiplier: 1 / 1).isActive = true
     }()
     
     
@@ -166,7 +165,7 @@ final class InputAccessoryView: UIInputView {
             let button = UIButton()
             button.setImage(UIImage(systemName: "circle.fill", withConfiguration: colorConf), for: .normal)
             button.tintColor = color
-            button.addTarget(self, action: #selector(selectColor(_:)), for: .touchUpInside)
+            button.addTarget(self, action: #selector(showHideColorPalete(_:)), for: .touchUpInside)
             buttons.append(button)
         }
         
@@ -178,7 +177,7 @@ final class InputAccessoryView: UIInputView {
         containerView.axis = .horizontal
         containerView.alignment = .center
         containerView.spacing = padding/2
-        
+        containerView.isHidden = true
         return containerView
     }()
     
@@ -208,10 +207,10 @@ final class InputAccessoryView: UIInputView {
     
     private func setupAccessoryView() {
         accessoryContentView.addArrangedSubview(toolbar)
-        //        if accessorySections.contains(.color) {
-        //            accessoryContentView.addArrangedSubview(colorPaletteBar)
-        //        }
-  
+        if accessorySections.contains(.color) && self.isShowHideColorButton {
+            accessoryContentView.addArrangedSubview(colorPaletteBar)
+        }
+        
         accessoryContentView.axis = .vertical
         accessoryContentView.alignment = .leading
         accessoryContentView.distribution = .fillProportionally
@@ -245,16 +244,13 @@ final class InputAccessoryView: UIInputView {
         if accessorySections.contains(.image) {
             stackView.addArrangedSubview(insertImageButton)
         }
-        if accessorySections.contains(.paleteColor) {
-            accessoryContentView.addArrangedSubview(paintPaletteButton)
-        }
         
         stackView.addArrangedSubview(separator)
         
         if accessorySections.contains(.keyboard) {
             stackView.addArrangedSubview(keyboardHideButton)
         }
-       
+        
         stackView.axis = .horizontal
         stackView.alignment = .center
         stackView.spacing = padding
@@ -371,30 +367,15 @@ final class InputAccessoryView: UIInputView {
         return menu
     }
     
-    private func getPaintPaletteMenu() -> UIMenu {
-        let menu = UIMenu(options: .displayInline, children: [
-            UIDeferredMenuElement.uncached { [weak self] completion in
-                var actions: [UIAction] = []
-               
-                for color in self?.textColors ?? [] {
-                    
-                    let action = UIAction(image: UIImage(systemName: "circle.fill")?.withTintColor(color)) { pressAction in
-                        print(pressAction)
-                    }
-                    actions.append(action)
-                }
-                
-                completion(actions)
-            }
-        ])
-        
-        return menu
-        
-    }
-    
-
-    
     // MARK: - Button Actions
+    
+ 
+    @objc private func showHideColorPalete(_ button: UIButton) {
+        if self.isShowHideColorButton {
+            self.isShowHideColorButton.toggle()
+            self.selectedColor = button.tintColor
+        }
+    }
     
     @objc private func showFontPalette(_ button: UIButton) {
         //
@@ -498,6 +479,7 @@ final class InputAccessoryView: UIInputView {
                 var textColor = textColors.first!
                 if let color = attribute.value as? UIColor {
                     textColor = color
+                    self.selectedColor = textColor
                 }
                 for button in colorButtons {
                     if button.tintColor == textColor {
