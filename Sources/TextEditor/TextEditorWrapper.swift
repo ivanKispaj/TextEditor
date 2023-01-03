@@ -358,7 +358,7 @@ struct TextEditorWrapper: UIViewControllerRepresentable {
                 parent.isHeader.toggle()
                 /// We get here when the first creation and the field contains nothing!
                 self.textStyle(.largeHeader)
-                
+                self.textColor(color: parent.hintColor)
             } else {
                 /// If the line after the header is empty,
                 /// resetting the font size value to the smallest
