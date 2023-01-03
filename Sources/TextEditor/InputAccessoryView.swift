@@ -484,7 +484,8 @@ final class InputAccessoryView: UIInputView {
                 var textColor = textColors.first!
                 if let color = attribute.value as? UIColor {
                     textColor = color
-                    self.selectedColor = textColor
+                    self.selectedColor = color
+                    self.showHideColorPalete.tintColor = color
                 }
                 for button in colorButtons {
                     if button.tintColor == textColor {
