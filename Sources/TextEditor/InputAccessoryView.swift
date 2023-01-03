@@ -377,9 +377,9 @@ final class InputAccessoryView: UIInputView {
  
     @objc private func showHideColorPalete(_ button: UIButton) {
         if self.isShowHideColorButton {
-            self.isShowHideColorButton.toggle()
             self.selectedColor = button.tintColor
         }
+        self.isShowHideColorButton.toggle()
     }
     
     @objc private func showFontPalette(_ button: UIButton) {
