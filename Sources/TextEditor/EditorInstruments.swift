@@ -14,7 +14,8 @@ public enum EditorSection: CaseIterable {
     case fontStyle
     case textAlignment
     case image
-    case color
+    case paleteColor
+   // case color
     case keyboard
 }
 

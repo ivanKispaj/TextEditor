@@ -11,7 +11,7 @@ import UIKit
 
 @available(iOS 15.0, *)
 final class InputAccessoryView: UIInputView {
-
+    
     private var stateTextFormat: SelecrtedTextFormat
     private var stateTextStyle: SelectedTextStyle
     private(set) var accessorySections: Array<EditorSection>
@@ -32,7 +32,7 @@ final class InputAccessoryView: UIInputView {
     weak var delegate: TextEditorDelegate!
     
     // MARK: Input Accessory separators
-
+    
     private lazy var separator: UIView = {
         let separator = UIView()
         let spacerWidthConstraint = separator.widthAnchor.constraint(equalToConstant: .greatestFiniteMagnitude)
@@ -81,7 +81,7 @@ final class InputAccessoryView: UIInputView {
         button.heightAnchor.constraint(equalTo: button.widthAnchor, multiplier: 1 / 1).isActive = true
         return button
     }()
-        
+    
     private lazy var textFontLabel: UILabel = {
         let label = UILabel()
         label.textAlignment = .center
@@ -90,53 +90,7 @@ final class InputAccessoryView: UIInputView {
         return label
     }()
     
-    private lazy var boldButton: UIButton = {
-        let button = UIButton()
-        button.addTarget(self, action: #selector(textStyle(_:)), for: .touchUpInside)
-        button.setImage(UIImage(systemName: "bold.italic.underline", withConfiguration: imageConf), for: .normal)
-        button.backgroundColor = .clear
-        button.tag = 1
-        button.widthAnchor.constraint(equalToConstant: buttonWidth).isActive = true
-        button.heightAnchor.constraint(equalToConstant: buttonHeight).isActive = true
-        
-        return button
-    }()
     
-    private lazy var italicButton: UIButton = {
-        let button = UIButton()
-        button.addTarget(self, action: #selector(textStyle(_:)), for: .touchUpInside)
-        button.setImage(UIImage(systemName: "italic", withConfiguration: imageConf), for: .normal)
-        button.backgroundColor = .clear
-        button.tag = 2
-        button.widthAnchor.constraint(equalToConstant: buttonWidth).isActive = true
-        button.heightAnchor.constraint(equalToConstant: buttonHeight).isActive = true
-        
-        return button
-    }()
-    
-    private lazy var underlineButton: UIButton = {
-        let button = UIButton()
-        button.addTarget(self, action: #selector(textStyle(_:)), for: .touchUpInside)
-        button.setImage(UIImage(systemName: "underline", withConfiguration: imageConf), for: .normal)
-        button.backgroundColor = .clear
-        button.tag = 3
-        button.widthAnchor.constraint(equalToConstant: buttonWidth).isActive = true
-        button.heightAnchor.constraint(equalToConstant: buttonHeight).isActive = true
-        
-        return button
-    }()
-    
-    private lazy var strikeButton: UIButton = {
-        let button = UIButton()
-        button.addTarget(self, action: #selector(textStyle(_:)), for: .touchUpInside)
-        button.setImage(UIImage(systemName: "strikethrough", withConfiguration: imageConf), for: .normal)
-        button.backgroundColor = .clear
-        button.tag = 4
-        button.widthAnchor.constraint(equalToConstant: buttonWidth).isActive = true
-        button.heightAnchor.constraint(equalToConstant: buttonHeight).isActive = true
-        
-        return button
-    }()
     
     var textAlignment: NSTextAlignment = .left {
         didSet {
@@ -191,6 +145,19 @@ final class InputAccessoryView: UIInputView {
         
     ]
     
+    
+    private lazy var paintPaletteButton: UIButton = {
+        let menu = getPaintPaletteMenu()
+        let button = UIButton()
+        button.setImage(UIImage(systemName: "paintpalette", withConfiguration: colorConf), for: .normal)
+        // button.tintColor = color
+        button.backgroundColor = .clear
+        button.widthAnchor.constraint(equalToConstant: buttonWidth).isActive = true
+        button.heightAnchor.constraint(equalToConstant: buttonHeight).isActive = true
+        return button
+    }()
+    
+    
     private lazy var colorButtons: [UIButton] = {
         var buttons: [UIButton] = []
         
@@ -240,10 +207,10 @@ final class InputAccessoryView: UIInputView {
     
     private func setupAccessoryView() {
         accessoryContentView.addArrangedSubview(toolbar)
-        if accessorySections.contains(.color) {
-            accessoryContentView.addArrangedSubview(colorPaletteBar)
-        }
-        
+        //        if accessorySections.contains(.color) {
+        //            accessoryContentView.addArrangedSubview(colorPaletteBar)
+        //        }
+  
         accessoryContentView.axis = .vertical
         accessoryContentView.alignment = .leading
         accessoryContentView.distribution = .fillProportionally
@@ -261,7 +228,7 @@ final class InputAccessoryView: UIInputView {
     
     // Menu to choose from: large header, header, small header and plain text
     private func setUpTextStyleFormat() -> UIMenu {
-    
+        
         let menu = UIMenu(options: .displayInline, children: [
             UIDeferredMenuElement.uncached { [weak self] comletion in
                 let action = [
@@ -283,7 +250,7 @@ final class InputAccessoryView: UIInputView {
                             self?.stateTextStyle.header = .off
                         }
                         self?.delegate.textStyle(self?.stateTextStyle.textStyle ?? .largeHeader)
-
+                        
                     },
                     
                     UIAction(title: "Small header", state: self?.stateTextStyle.smallHeader ?? UIAction.State.off) { [weak self] action in
@@ -294,7 +261,7 @@ final class InputAccessoryView: UIInputView {
                             self?.stateTextStyle.smallHeader = .off
                         }
                         self?.delegate.textStyle(self?.stateTextStyle.textStyle ?? .largeHeader)
-
+                        
                     },
                     
                     UIAction(title: "Plain text", state: self?.stateTextStyle.plainText ?? UIAction.State.off) { [weak self] action in
@@ -305,7 +272,7 @@ final class InputAccessoryView: UIInputView {
                             self?.stateTextStyle.plainText = .off
                         }
                         self?.delegate.textStyle(self?.stateTextStyle.textStyle ?? .largeHeader)
-
+                        
                     },
                     
                 ]
@@ -315,7 +282,7 @@ final class InputAccessoryView: UIInputView {
         
         return menu
     }
- 
+    
     // Menu to choose from: bold, italic, underline and Strikethrough text
     private func setUpMenuFontFormat() -> UIMenu {
         let menu = UIMenu(options: .displayInline, children: [
@@ -342,8 +309,8 @@ final class InputAccessoryView: UIInputView {
                     UIAction(title: "Italic", image: UIImage(systemName: "italic"), state: self?.stateTextFormat.italic ?? UIAction.State.off) {[weak self] action in
                         if self?.stateTextFormat.italic == .off {
                             self?.stateTextFormat.italic = .on
-                           
-
+                            
+                            
                         } else {
                             self?.stateTextFormat.italic = .off
                         }
@@ -352,8 +319,8 @@ final class InputAccessoryView: UIInputView {
                     UIAction( title: "Bold", image: UIImage(systemName: "bold"),state: self?.stateTextFormat.bold ?? UIAction.State.off) { [weak self] action in
                         if self?.stateTextFormat.bold == .off {
                             self?.stateTextFormat.bold = .on
-                           
-
+                            
+                            
                         } else {
                             self?.stateTextFormat.bold = .off
                         }
@@ -367,27 +334,62 @@ final class InputAccessoryView: UIInputView {
         return menu
     }
     
-// MARK: - Toolbar
+    private func getPaintPaletteMenu() -> UIMenu {
+        let menu = UIMenu(options: .displayInline, children: [
+            UIDeferredMenuElement.uncached { [weak self] completion in
+                var actions: [UIAction] = []
+                //
+                //                    UIAction(title: "Underline",  image: UIImage(systemName: "underline"), state: self?.stateTextFormat.underline ?? UIAction.State.off) { [weak self] action in
+                //                        if self?.stateTextFormat.underline == .off {
+                //                            self?.stateTextFormat.underline = .on
+                //
+                //                        } else {
+                //                            self?.stateTextFormat.underline = .off
+                //                        }
+                //                        self?.delegate.textUnderline()
+                //                    },
+                //   ]
+                
+                for color in self?.textColors ?? [] {
+                    
+                    let action = UIAction(image: UIImage(systemName: "circle.fill")?.withTintColor(color)) { pressAction in
+                        print(pressAction)
+                    }
+                    actions.append(action)
+                }
+                
+                completion(actions)
+            }
+        ])
+        
+        return menu
+        
+    }
+    
+    // MARK: - Toolbar
     private var toolbar: UIStackView {
         let stackView = UIStackView()
-
+        
         if accessorySections.contains(.fontFormat) {
             stackView.addArrangedSubview(fontFormatButton)
         }
         if accessorySections.contains(.fontStyle) {
             stackView.addArrangedSubview(textStyleButton)
         }
-
+        
         if accessorySections.contains(.textAlignment) {
             stackView.addArrangedSubview(alignmentButton)
         }
-
+        
         if accessorySections.contains(.image) {
             stackView.addArrangedSubview(insertImageButton)
         }
         stackView.addArrangedSubview(separator)
         if accessorySections.contains(.keyboard) {
             stackView.addArrangedSubview(keyboardHideButton)
+        }
+        if accessorySections.contains(.paleteColor) {
+            accessoryContentView.addArrangedSubview(paintPaletteButton)
         }
         stackView.axis = .horizontal
         stackView.alignment = .center
@@ -471,13 +473,13 @@ final class InputAccessoryView: UIInputView {
                     textFontLabel.text = "\(Int(fontSize))"
                     let isBold = (font == UIFont.boldSystemFont(ofSize: fontSize))
                     let isItalic = (font == UIFont.italicSystemFont(ofSize: fontSize))
-
+                    
                     isBold ? (self.stateTextFormat.bold = .on) : (self.stateTextFormat.bold = .off)
                     isItalic ? (self.stateTextFormat.italic = .on) : (self.stateTextFormat.italic = .off)
                 } else {
                     self.stateTextFormat.bold = .off
                     self.stateTextFormat.italic = .off
-
+                    
                 }
             }
             

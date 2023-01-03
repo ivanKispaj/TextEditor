@@ -55,8 +55,8 @@ struct TextEditorWrapper: UIViewControllerRepresentable {
     // makeUIView method
     func makeUIViewController(context: Context) -> some UIViewController {
         setUpTextView()
-        let sections = accessoryView.accessorySections
-        let rect = CGRect(x: 0, y: 0, width: deviceFrame.width, height: sections.contains(.color) ? 70 : 40)
+      //  let sections = accessoryView.accessorySections
+        let rect = CGRect(x: 0, y: 0, width: deviceFrame.width, height: 50 )//sections.contains(.color) ? 70 : 40)
         self.accessoryView.frame = rect
         textView.delegate = context.coordinator
         context.coordinator.textViewDidChange(textView)
