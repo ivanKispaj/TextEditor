@@ -25,7 +25,9 @@ struct TextEditorWrapper: UIViewControllerRepresentable {
     private var defaultFontSize: CGFloat = 24
     private let defaultFontName = "AvenirNext-Regular"
     private let onCommit: ((NSAttributedString) -> Void)
+    
     private var isImagePicker: Bool = false
+    
     private var isHeader: Bool = false
     private var defaultFont: UIFont {
         return UIFont(name: defaultFontName, size: defaultFontSize) ?? .systemFont(ofSize: defaultFontSize)
@@ -89,6 +91,7 @@ struct TextEditorWrapper: UIViewControllerRepresentable {
             // Otherwise, text with attributes is written to TextView
             textView.attributedText = attributedText
         }
+        
         textView.isEditable = true
         textView.isSelectable = true
         textView.isScrollEnabled = false
@@ -237,8 +240,7 @@ struct TextEditorWrapper: UIViewControllerRepresentable {
             imagePicker.allowsEditing = true
             imagePicker.sourceType = sourceType
             parent.isImagePicker = true
-            parent.controller.navigationController?.present(imagePicker, animated: true)
-          //  parent.controller.present(imagePicker, animated: true, completion: nil)
+            parent.controller.present(imagePicker, animated: true)
         }
         
         func hideKeyboard() {
@@ -372,7 +374,7 @@ struct TextEditorWrapper: UIViewControllerRepresentable {
         }
         
         func textViewDidEndEditing(_ textView: UITextView) {
-            
+
             if !parent.isImagePicker {
                 parent.onCommit(textView.attributedText)
             }
@@ -404,4 +406,3 @@ struct TextEditorWrapper: UIViewControllerRepresentable {
     }
     
 }
-
