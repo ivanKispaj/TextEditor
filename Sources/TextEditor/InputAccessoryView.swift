@@ -179,6 +179,7 @@ final class InputAccessoryView: UIInputView {
         containerView.alignment = .center
         containerView.spacing = padding/2
         containerView.isHidden = true
+        containerView.distribution = .equalCentering
         return containerView
     }()
     
@@ -378,6 +379,7 @@ final class InputAccessoryView: UIInputView {
     @objc private func showHideColorPalete(_ button: UIButton) {
         if self.isShowHideColorButton {
             self.selectedColor = button.tintColor
+            self.showHideColorPalete.tintColor = button.tintColor
             
         }
         self.isShowHideColorButton.toggle()
