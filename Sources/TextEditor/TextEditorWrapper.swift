@@ -97,6 +97,7 @@ struct TextEditorWrapper: UIViewControllerRepresentable {
         textView.isUserInteractionEnabled = false
         textView.textAlignment = .left
         textView.becomeFirstResponder()
+        textView.tintColor = self.hintColor
         textView.textContainerInset = UIEdgeInsets.zero
         textView.textContainer.lineFragmentPadding = 0
         textView.layoutManager.allowsNonContiguousLayout = false
