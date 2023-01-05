@@ -147,7 +147,7 @@ struct TextEditorWrapper: UIViewControllerRepresentable {
                 if image.size.width <= parent.deviceFrame.width {
                     rect = CGSize(width: image.size.width, height: image.size.height)
                      attributes = [NSAttributedString.Key.font: UIFont(name: parent.defaultFontName, size: TextStyleFormat.plainText.rawValue)!,
-                                   NSAttributedString.Key.foregroundColor: UIColor(named: "whiteBlack") ?? .systemGray]
+                                   NSAttributedString.Key.foregroundColor: UIColor.label]
                 } else {
                     rect = getRectForAttachment(image: image, deviceSize: parent.deviceFrame.size)
                 

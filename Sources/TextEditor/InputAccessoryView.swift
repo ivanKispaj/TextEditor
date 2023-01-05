@@ -23,7 +23,7 @@ final class InputAccessoryView: UIInputView {
     private let buttonHeight: CGFloat = 45
     private let cornerRadius: CGFloat = 6
     private let edgeInsets: CGFloat = 5
-    private var selectedColor = UIColor(named: "whiteBlack") ?? UIColor.systemGray
+    private var selectedColor = UIColor.label
     private let containerBackgroundColor: UIColor = .systemBackground
     private let colorConf = UIImage.SymbolConfiguration(pointSize: 22, weight: .regular)
     private var imageConf: UIImage.SymbolConfiguration {
