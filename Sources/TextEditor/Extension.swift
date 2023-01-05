@@ -9,10 +9,9 @@ import SwiftUI
 
 @available(iOS 13.0, *)
 extension UIImage {
-    func roundedImageWithBorder(color: UIColor) -> UIImage? {
-        let length = min(size.width, size.height)
-        let borderWidth = length * 0.04
-        let cornerRadius = length * 0.01
+    func roundedImageWithBorder(color: UIColor, borderWidth: CGFloat) -> UIImage? {
+        let borderWidth = borderWidth
+        let cornerRadius:CGFloat = 2
         
         let rect = CGSize(width: size.width+borderWidth*1.5, height:size.height+borderWidth*1.8)
         let imageView = UIImageView(frame: CGRect(origin: CGPoint(x: 0, y: 0), size: rect))
@@ -35,5 +34,31 @@ extension UIImage {
 extension NSRange {
     var isEmpty: Bool {
         return self.upperBound == self.lowerBound
+    }
+}
+
+extension UIColor {
+    
+    public enum CollorName: String {
+        case whiteBlack = "whiteBlack"
+
+    }
+    
+    private static var colorCash: [CollorName : UIColor] = [:]
+    
+    public static func appColor(_ name: CollorName) -> UIColor {
+        if let cashedColor = colorCash[name] {
+            return cashedColor
+        }
+        self.clearColorCashIfNeeded()
+         let color = UIColor(named: name.rawValue)
+        colorCash[name] = color
+        return color ?? systemGray
+    }
+    
+    private static func clearColorCashIfNeeded() {
+        let maxObjectCount = 100
+        guard self.colorCash.count >= maxObjectCount else { return }
+        self.colorCash = [:]
     }
 }

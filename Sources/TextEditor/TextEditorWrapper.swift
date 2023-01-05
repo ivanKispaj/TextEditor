@@ -21,11 +21,12 @@ struct TextEditorWrapper: UIViewControllerRepresentable {
     private let placeholder: String
     private let lineSpacing: CGFloat = 3
     // Default color
-    private let hintColor = UIColor(named: "whiteBlack") ?? UIColor.systemGray6
+    private let hintColor = UIColor.appColor(.whiteBlack)
     private var defaultFontSize: CGFloat = 24
     private let defaultFontName = "AvenirNext-Regular"
     private let onCommit: ((NSAttributedString) -> Void)
     private var isImagePicker: Bool = false
+    private var imageBorderWidth: CGFloat = 10
     private var isHeader: Bool = false
     private var defaultFont: UIFont {
         return UIFont(name: defaultFontName, size: defaultFontSize) ?? .systemFont(ofSize: defaultFontSize)
@@ -137,7 +138,7 @@ struct TextEditorWrapper: UIViewControllerRepresentable {
         // MARK: - Image Picker delegate method
         
         func imagePickerController(_ picker: UIImagePickerController, didFinishPickingMediaWithInfo info: [UIImagePickerController.InfoKey : Any]) {
-            if let img = info[UIImagePickerController.InfoKey.originalImage] as? UIImage, let image = img.roundedImageWithBorder(color: .secondarySystemBackground) {
+            if let img = info[UIImagePickerController.InfoKey.originalImage] as? UIImage, let image = img.roundedImageWithBorder(color: .secondarySystemBackground,borderWidth: parent.imageBorderWidth) {
                 textViewDidBeginEditing(parent.textView)
                 let newString = NSMutableAttributedString(attributedString: parent.textView.attributedText)
                 var rect: CGSize
@@ -174,7 +175,7 @@ struct TextEditorWrapper: UIViewControllerRepresentable {
         func getRectForAttachment(image: UIImage, deviceSize: CGSize) -> CGSize {
             var width = deviceSize.width
             if deviceSize.width > deviceSize.height {
-                width -= 95
+                width -= parent.imageBorderWidth
             }
             let ratio = image.size.width / width
             let imageH = image.size.height / ratio
@@ -263,7 +264,7 @@ struct TextEditorWrapper: UIViewControllerRepresentable {
             let estimatedSize = parent.textView.sizeThatFits(size)
             if parent.height != estimatedSize.height {
                 DispatchQueue.main.async {
-                    self.parent.height = estimatedSize.height + 20
+                    self.parent.height = estimatedSize.height
                 }
             }
             parent.textView.scrollRangeToVisible(parent.textView.selectedRange)
