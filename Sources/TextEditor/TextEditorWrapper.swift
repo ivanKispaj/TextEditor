@@ -25,9 +25,7 @@ struct TextEditorWrapper: UIViewControllerRepresentable {
     private var defaultFontSize: CGFloat = 24
     private let defaultFontName = "AvenirNext-Regular"
     private let onCommit: ((NSAttributedString) -> Void)
-    
     private var isImagePicker: Bool = false
-    
     private var isHeader: Bool = false
     private var defaultFont: UIFont {
         return UIFont(name: defaultFontName, size: defaultFontSize) ?? .systemFont(ofSize: defaultFontSize)
@@ -35,7 +33,6 @@ struct TextEditorWrapper: UIViewControllerRepresentable {
     
     // MARK: - Init
     init(
-        
         attributedText: NSMutableAttributedString,
         height: Binding<CGFloat>,
         placeholder: String,
@@ -52,6 +49,7 @@ struct TextEditorWrapper: UIViewControllerRepresentable {
         self.onCommit = onCommit
         self.deviceFrame = deviceFrame
         self.accessoryView = InputAccessoryView(frame: .zero, inputViewStyle: .default, accessorySections: sections)
+        
     }
     
     // makeUIView method
@@ -118,17 +116,6 @@ struct TextEditorWrapper: UIViewControllerRepresentable {
     
     
     
-    private func scaleImage(image: UIImage, maxWidth: CGFloat, maxHeight: CGFloat) -> UIImage {
-        let ratio = image.size.width / image.size.height
-        let imageW: CGFloat = (ratio >= 1) ? maxWidth : image.size.width*(maxHeight/image.size.height)
-        let imageH: CGFloat = (ratio <= 1) ? maxHeight : image.size.height*(maxWidth/image.size.width)
-        UIGraphicsBeginImageContext(CGSize(width: imageW, height: imageH))
-        image.draw(in: CGRect(x: 0, y: 0, width: imageW, height: imageH))
-        let scaledimage = UIGraphicsGetImageFromCurrentImageContext()
-        UIGraphicsEndImageContext()
-        return scaledimage!
-    }
-    
     //MARK: - Coordinator
     class Coordinator: NSObject, UITextViewDelegate, UIImagePickerControllerDelegate, UINavigationControllerDelegate, TextEditorDelegate {
         var parent: TextEditorWrapper
@@ -143,33 +130,55 @@ struct TextEditorWrapper: UIViewControllerRepresentable {
             
         }
         
-        // MARK: - Image Picker
+
+        
+ 
+        
+        // MARK: - Image Picker delegate method
         
         func imagePickerController(_ picker: UIImagePickerController, didFinishPickingMediaWithInfo info: [UIImagePickerController.InfoKey : Any]) {
-            if let img = info[UIImagePickerController.InfoKey.editedImage] as? UIImage, var image = img.roundedImageWithBorder(color: .secondarySystemBackground) {
+            if let img = info[UIImagePickerController.InfoKey.originalImage] as? UIImage, let image = img.roundedImageWithBorder(color: .secondarySystemBackground) {
                 textViewDidBeginEditing(parent.textView)
                 let newString = NSMutableAttributedString(attributedString: parent.textView.attributedText)
-                image = scaleImage(image: image, maxWidth: 180, maxHeight: 180)
+                var rect: CGSize
+                var attributes: [NSAttributedString.Key: Any]? = nil
+                if image.size.width <= parent.deviceFrame.width {
+                    rect = CGSize(width: image.size.width, height: image.size.height)
+                     attributes = [NSAttributedString.Key.font: UIFont(name: parent.defaultFontName, size: TextStyleFormat.plainText.rawValue)!,
+                                   NSAttributedString.Key.foregroundColor: UIColor(named: "whiteBlack") ?? .systemGray]
+                } else {
+                    rect = getRectForAttachment(image: image, deviceSize: parent.deviceFrame.size)
                 
+                }
                 let textAttachment = NSTextAttachment(image: image)
+                textAttachment.bounds = CGRect(x: 0, y: 0, width: rect.width, height: rect.height)
                 let attachmentString = NSAttributedString(attachment: textAttachment)
                 newString.append(attachmentString)
+                if attributes != nil {
+                    newString.append(NSMutableAttributedString(string: "",attributes: attributes))
+                }
                 parent.textView.attributedText = newString
                 textViewDidChange(parent.textView)
+                self.textStyle(.plainText)
+                self.textColor(color: parent.hintColor)
             }
             parent.isImagePicker = false
+            
             picker.dismiss(animated: true, completion: nil)
         }
         
-        func scaleImage(image: UIImage, maxWidth: CGFloat, maxHeight: CGFloat) -> UIImage {
-            let ratio = image.size.width / image.size.height
-            let imageW: CGFloat = (ratio >= 1) ? maxWidth : image.size.width*(maxHeight/image.size.height)
-            let imageH: CGFloat = (ratio <= 1) ? maxHeight : image.size.height*(maxWidth/image.size.width)
-            UIGraphicsBeginImageContext(CGSize(width: imageW, height: imageH))
-            image.draw(in: CGRect(x: 0, y: 0, width: imageW, height: imageH))
-            let scaledimage = UIGraphicsGetImageFromCurrentImageContext()
-            UIGraphicsEndImageContext()
-            return scaledimage!
+        // calculates CGSize in by image proportions and screen size
+        /// - parameter image: UIImage for which we calculate the size
+        /// - parameter deviceSize: CGSize devices
+        /// - returns:  image CGSize calculated in proportion to the screen size
+        func getRectForAttachment(image: UIImage, deviceSize: CGSize) -> CGSize {
+            var width = deviceSize.width
+            if deviceSize.width > deviceSize.height {
+                width -= 95
+            }
+            let ratio = image.size.width / width
+            let imageH = image.size.height / ratio
+            return CGSize(width: width, height: imageH)
         }
         
         // MARK: - Text Editor Delegate
@@ -245,6 +254,37 @@ struct TextEditorWrapper: UIViewControllerRepresentable {
         
         func hideKeyboard() {
             parent.textView.resignFirstResponder()
+        }
+      
+        /// recalculating textview height
+        private func recalculatingTextViewSize() {
+            self.prepareNSAttachmentBound()
+            let size = CGSize(width: parent.controller.view.frame.width, height: .infinity)
+            let estimatedSize = parent.textView.sizeThatFits(size)
+            if parent.height != estimatedSize.height {
+                DispatchQueue.main.async {
+                    self.parent.height = estimatedSize.height + 20
+                }
+            }
+            parent.textView.scrollRangeToVisible(parent.textView.selectedRange)
+        }
+        
+       // method for recalculating nstextattachmentcell bounds
+        private func prepareNSAttachmentBound() {
+            let text: NSMutableAttributedString = NSMutableAttributedString(attributedString: parent.textView.attributedText)
+            let frame = parent.deviceFrame
+            let width  = CGRectGetWidth(frame)
+            text.enumerateAttribute(.attachment, in: NSRange(location: 0, length: text.length), options: [], using: { [width] (object, range, pointer) in
+                let textViewAsAny: Any = parent.textView
+                if let attachment = object as? NSTextAttachment, let img = attachment.image(forBounds: parent.textView.bounds, textContainer: textViewAsAny as? NSTextContainer, characterIndex: range.location) {
+                    let rect = getRectForAttachment(image: img, deviceSize: frame.size)
+                        if img.size.width <= width {
+                            attachment.bounds = CGRect(x: 0, y: 0, width: img.size.width, height: img.size.height)
+                            return
+                        }
+                    attachment.bounds = CGRect(x: 0, y: 0, width: rect.width, height: rect.height)
+                }
+            })
         }
         
         // Add text attributes to text view
@@ -348,6 +388,7 @@ struct TextEditorWrapper: UIViewControllerRepresentable {
         // MARK: - Text View Delegate
         
         func textViewDidChangeSelection(_ textView: UITextView) {
+            
             let textRange = parent.textView.selectedRange
             
             if textRange.isEmpty {
@@ -358,6 +399,8 @@ struct TextEditorWrapper: UIViewControllerRepresentable {
         }
         
         func textViewDidBeginEditing(_ textView: UITextView) {
+            ///adding an observer to track the position of the screen
+            NotificationCenter.default.addObserver(self, selector: #selector(handleForChangeDeviceOrientation), name: NSNotification.Name("deviceOrientationChanged"), object: nil)
             
             if textView.attributedText.string == parent.placeholder {
                 parent.isHeader.toggle()
@@ -370,11 +413,12 @@ struct TextEditorWrapper: UIViewControllerRepresentable {
                 if isEmptyLineAfterHeader(textView){
                     self.textStyle(.plainText)
                 }
+                self.recalculatingTextViewSize()
             }
         }
         
         func textViewDidEndEditing(_ textView: UITextView) {
-
+            
             if !parent.isImagePicker {
                 parent.onCommit(textView.attributedText)
             }
@@ -401,8 +445,27 @@ struct TextEditorWrapper: UIViewControllerRepresentable {
             textView.scrollRangeToVisible(textView.selectedRange)
         }
         
-        
+        //MARK: - the method is triggered when the screen orientation changes
+        /// And changes the width of the screen with the height
+         @objc func handleForChangeDeviceOrientation(_ notification: Notification) {
+             if let deviceOrientation = notification.userInfo?.values.first as? DeviceOrientation {
+       
+                 switch deviceOrientation {
+                 case .Landscape:
+                     if self.parent.deviceFrame.width < self.parent.deviceFrame.height {
+                         (self.parent.deviceFrame.size.width, self.parent.deviceFrame.size.height) = (self.parent.deviceFrame.size.height, self.parent.deviceFrame.size.width)
+                     }
+                 case .portrait:
+                     if self.parent.deviceFrame.width > self.parent.deviceFrame.height {
+                         (self.parent.deviceFrame.size.width, self.parent.deviceFrame.size.height) = (self.parent.deviceFrame.size.height, self.parent.deviceFrame.size.width)
+                     }
+                 }
+             }
+             self.recalculatingTextViewSize()
+             
+         }
         
     }
+
     
 }
