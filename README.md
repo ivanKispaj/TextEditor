@@ -2,9 +2,10 @@
 <h1> TextEditor </h1>
 
 <h3>  Using </h3>
-### Add the package to your app
+<h4> Add the package to your app <h4>
 <p align="center> To redraw the image in proportion to the orientation of the screen, you need to change the value of the transmitted property: deviceOrientation. </p>
-```Swift
+          
+<code>
 import SwiftUI
 import TextEditor
 
@@ -23,4 +24,4 @@ struct ContentView: View {
     }
 }
 
-```
+                                                                         </code>
