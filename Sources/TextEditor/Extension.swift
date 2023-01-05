@@ -51,9 +51,16 @@ extension UIColor {
             return cashedColor
         }
         self.clearColorCashIfNeeded()
-         let color = UIColor(named: name.rawValue)
+        let color: UIColor
+        if let bundle = Bundle(path: "/Assets"),
+            let uiColor =  UIColor(named: name.rawValue, in: bundle, compatibleWith: nil) {
+            color = uiColor
+        } else {
+            color = .black
+        }
+        
         colorCash[name] = color
-        return color ?? systemGray
+        return color
     }
     
     private static func clearColorCashIfNeeded() {
