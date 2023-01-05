@@ -52,7 +52,7 @@ extension UIColor {
         }
         self.clearColorCashIfNeeded()
         let color: UIColor
-        
+        let col = UIColor.appColor(.whiteBlack)
         if let bundle = Bundle(path: "/Assets"),
             let uiColor =  UIColor(named: name.rawValue, in: bundle, compatibleWith: nil) {
             color = uiColor
