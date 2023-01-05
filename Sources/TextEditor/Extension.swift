@@ -52,6 +52,7 @@ extension UIColor {
         }
         self.clearColorCashIfNeeded()
         let color: UIColor
+        
         if let bundle = Bundle(path: "/Assets"),
             let uiColor =  UIColor(named: name.rawValue, in: bundle, compatibleWith: nil) {
             color = uiColor
@@ -69,3 +70,4 @@ extension UIColor {
         self.colorCash = [:]
     }
 }
+
