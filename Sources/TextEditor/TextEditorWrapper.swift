@@ -94,7 +94,7 @@ struct TextEditorWrapper: UIViewControllerRepresentable {
         textView.isEditable = true
         textView.isSelectable = true
         textView.isScrollEnabled = false
-        textView.isUserInteractionEnabled = true
+        textView.isUserInteractionEnabled = false
         textView.textAlignment = .left
         textView.becomeFirstResponder()
         textView.textContainerInset = UIEdgeInsets.zero
