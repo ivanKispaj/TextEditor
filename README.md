@@ -1,7 +1,7 @@
 <<<<<<< HEAD
 # TextEditor
 
-```
+```Swift
 import SwiftUI
 import TextEditor
 
