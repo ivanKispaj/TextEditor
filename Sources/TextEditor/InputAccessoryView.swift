@@ -135,7 +135,7 @@ final class InputAccessoryView: UIInputView {
     // MARK: Addtional Bars
     
     private let textColors: [UIColor] = [
-        UIColor.appColor(.whiteBlack),
+        UIColor.label,
         UIColor.systemRed,
         UIColor.systemBlue,
         UIColor.systemCyan,

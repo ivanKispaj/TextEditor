@@ -21,7 +21,7 @@ struct TextEditorWrapper: UIViewControllerRepresentable {
     private let placeholder: String
     private let lineSpacing: CGFloat = 3
     // Default color
-    private let hintColor = UIColor.appColor(.whiteBlack)
+    private let hintColor = UIColor.label
     private var defaultFontSize: CGFloat = 24
     private let defaultFontName = "AvenirNext-Regular"
     private let onCommit: ((NSAttributedString) -> Void)

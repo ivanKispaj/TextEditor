@@ -37,37 +37,5 @@ extension NSRange {
     }
 }
 
-extension UIColor {
-    
-    public enum CollorName: String {
-        case whiteBlack = "whiteBlack"
 
-    }
-    
-    private static var colorCash: [CollorName : UIColor] = [:]
-    
-    public static func appColor(_ name: CollorName) -> UIColor {
-        if let cashedColor = colorCash[name] {
-            return cashedColor
-        }
-        self.clearColorCashIfNeeded()
-        let color: UIColor
-        let col = UIColor.appColor(.whiteBlack)
-        if let bundle = Bundle(path: "/Assets"),
-            let uiColor =  UIColor(named: name.rawValue, in: bundle, compatibleWith: nil) {
-            color = uiColor
-        } else {
-            color = .black
-        }
-        
-        colorCash[name] = color
-        return color
-    }
-    
-    private static func clearColorCashIfNeeded() {
-        let maxObjectCount = 100
-        guard self.colorCash.count >= maxObjectCount else { return }
-        self.colorCash = [:]
-    }
-}
 
