@@ -94,12 +94,12 @@ struct TextEditorWrapper: UIViewControllerRepresentable {
         textView.isEditable = true
         textView.isSelectable = true
         textView.isScrollEnabled = false
-        textView.isUserInteractionEnabled = false
         textView.textAlignment = .left
         textView.becomeFirstResponder()
         textView.tintColor = self.hintColor
         textView.textContainerInset = UIEdgeInsets.zero
         textView.textContainer.lineFragmentPadding = 0
+        textView.isUserInteractionEnabled = true
         textView.layoutManager.allowsNonContiguousLayout = false
         textView.setContentCompressionResistancePriority(.defaultLow, for: .horizontal)
         textView.backgroundColor = .systemBackground
