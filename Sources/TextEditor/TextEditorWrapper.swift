@@ -94,16 +94,15 @@ struct TextEditorWrapper: UIViewControllerRepresentable {
         textView.isEditable = true
         textView.isSelectable = true
         textView.isScrollEnabled = false
+        textView.isUserInteractionEnabled = true
         textView.textAlignment = .left
         textView.becomeFirstResponder()
         textView.tintColor = self.hintColor
         textView.textContainerInset = UIEdgeInsets.zero
         textView.textContainer.lineFragmentPadding = 0
-        textView.isUserInteractionEnabled = true
         textView.layoutManager.allowsNonContiguousLayout = false
         textView.setContentCompressionResistancePriority(.defaultLow, for: .horizontal)
         textView.backgroundColor = .systemBackground
-        
         controller.view.addSubview(textView)
         
         textView.translatesAutoresizingMaskIntoConstraints = false
@@ -115,7 +114,6 @@ struct TextEditorWrapper: UIViewControllerRepresentable {
         
         
     }
-    
     
     
     //MARK: - Coordinator
@@ -132,40 +130,50 @@ struct TextEditorWrapper: UIViewControllerRepresentable {
             
         }
         
-
-        
- 
-        
         // MARK: - Image Picker delegate method
         
         func imagePickerController(_ picker: UIImagePickerController, didFinishPickingMediaWithInfo info: [UIImagePickerController.InfoKey : Any]) {
             if let img = info[UIImagePickerController.InfoKey.originalImage] as? UIImage, let image = img.roundedImageWithBorder(color: .secondarySystemBackground,borderWidth: parent.imageBorderWidth) {
+                
                 textViewDidBeginEditing(parent.textView)
                 let newString = NSMutableAttributedString(attributedString: parent.textView.attributedText)
                 var rect: CGSize
-                var attributes: [NSAttributedString.Key: Any]? = nil
+                
                 if image.size.width <= parent.deviceFrame.width {
                     rect = CGSize(width: image.size.width, height: image.size.height)
-                     attributes = [NSAttributedString.Key.font: UIFont(name: parent.defaultFontName, size: TextStyleFormat.plainText.rawValue)!,
-                                   NSAttributedString.Key.foregroundColor: UIColor.label]
                 } else {
                     rect = getRectForAttachment(image: image, deviceSize: parent.deviceFrame.size)
-                
                 }
+                
                 let textAttachment = NSTextAttachment(image: image)
                 textAttachment.bounds = CGRect(x: 0, y: 0, width: rect.width, height: rect.height)
+                textAttachment.image?.withTintColor(.label)
                 let attachmentString = NSAttributedString(attachment: textAttachment)
+                
+                
+                let font = UIFont(name: parent.defaultFontName, size: TextStyleFormat.plainText.rawValue)!
+                let color = UIColor.label
+                var attr: [NSAttributedString.Key : Any] = [:]
+                attr[.font] = font
+                attr[.foregroundColor] = color
+                
+                
+                newString.append(NSAttributedString(string: "\n"))
+                let range = (newString.string as NSString).range(of: newString.string)
                 newString.append(attachmentString)
-                if attributes != nil {
-                    newString.append(NSMutableAttributedString(string: "",attributes: attributes))
-                }
+                newString.append(NSAttributedString(string: "\n"))
+                newString.addAttributes(attr, range: NSRange(location: range.length, length: 2))
+                
                 parent.textView.attributedText = newString
                 textViewDidChange(parent.textView)
                 self.textStyle(.plainText)
                 self.textColor(color: parent.hintColor)
             }
             parent.isImagePicker = false
-            
+            DispatchQueue.main.async {
+                self.parent.textView.becomeFirstResponder()
+
+            }
             picker.dismiss(animated: true, completion: nil)
         }
         
@@ -245,6 +253,7 @@ struct TextEditorWrapper: UIViewControllerRepresentable {
         }
         
         func insertImage() {
+            parent.textView.resignFirstResponder()
             let sourceType = UIImagePickerController.SourceType.photoLibrary
             let imagePicker = UIImagePickerController()
             imagePicker.delegate = self
@@ -257,10 +266,10 @@ struct TextEditorWrapper: UIViewControllerRepresentable {
         func hideKeyboard() {
             parent.textView.resignFirstResponder()
         }
-      
+        
         /// recalculating textview height
         private func recalculatingTextViewSize() {
-            self.prepareNSAttachmentBound()
+            //   self.prepareNSAttachmentBound()
             let size = CGSize(width: parent.controller.view.frame.width, height: .infinity)
             let estimatedSize = parent.textView.sizeThatFits(size)
             if parent.height != estimatedSize.height {
@@ -271,7 +280,7 @@ struct TextEditorWrapper: UIViewControllerRepresentable {
             parent.textView.scrollRangeToVisible(parent.textView.selectedRange)
         }
         
-       // method for recalculating nstextattachmentcell bounds
+        // method for recalculating nstextattachmentcell bounds
         private func prepareNSAttachmentBound() {
             let text: NSMutableAttributedString = NSMutableAttributedString(attributedString: parent.textView.attributedText)
             let frame = parent.deviceFrame
@@ -280,10 +289,10 @@ struct TextEditorWrapper: UIViewControllerRepresentable {
                 let textViewAsAny: Any = parent.textView
                 if let attachment = object as? NSTextAttachment, let img = attachment.image(forBounds: parent.textView.bounds, textContainer: textViewAsAny as? NSTextContainer, characterIndex: range.location) {
                     let rect = getRectForAttachment(image: img, deviceSize: frame.size)
-                        if img.size.width <= width {
-                            attachment.bounds = CGRect(x: 0, y: 0, width: img.size.width, height: img.size.height)
-                            return
-                        }
+                    if img.size.width <= width {
+                        attachment.bounds = CGRect(x: 0, y: 0, width: img.size.width, height: img.size.height)
+                        return
+                    }
                     attachment.bounds = CGRect(x: 0, y: 0, width: rect.width, height: rect.height)
                 }
             })
@@ -427,7 +436,6 @@ struct TextEditorWrapper: UIViewControllerRepresentable {
         }
         
         func textViewDidChange(_ textView: UITextView) {
-            
             if textView.attributedText.string != parent.placeholder {
                 parent.attributedText = NSMutableAttributedString(attributedString: textView.attributedText)
             }
@@ -449,25 +457,25 @@ struct TextEditorWrapper: UIViewControllerRepresentable {
         
         //MARK: - the method is triggered when the screen orientation changes
         /// And changes the width of the screen with the height
-         @objc func handleForChangeDeviceOrientation(_ notification: Notification) {
-             if let deviceOrientation = notification.userInfo?.values.first as? DeviceOrientation {
-       
-                 switch deviceOrientation {
-                 case .Landscape:
-                     if self.parent.deviceFrame.width < self.parent.deviceFrame.height {
-                         (self.parent.deviceFrame.size.width, self.parent.deviceFrame.size.height) = (self.parent.deviceFrame.size.height, self.parent.deviceFrame.size.width)
-                     }
-                 case .portrait:
-                     if self.parent.deviceFrame.width > self.parent.deviceFrame.height {
-                         (self.parent.deviceFrame.size.width, self.parent.deviceFrame.size.height) = (self.parent.deviceFrame.size.height, self.parent.deviceFrame.size.width)
-                     }
-                 }
-             }
-             self.recalculatingTextViewSize()
-             
-         }
+        @objc func handleForChangeDeviceOrientation(_ notification: Notification) {
+            if let deviceOrientation = notification.userInfo?.values.first as? DeviceOrientation {
+                
+                switch deviceOrientation {
+                case .Landscape:
+                    if self.parent.deviceFrame.width < self.parent.deviceFrame.height {
+                        (self.parent.deviceFrame.size.width, self.parent.deviceFrame.size.height) = (self.parent.deviceFrame.size.height, self.parent.deviceFrame.size.width)
+                    }
+                case .portrait:
+                    if self.parent.deviceFrame.width > self.parent.deviceFrame.height {
+                        (self.parent.deviceFrame.size.width, self.parent.deviceFrame.size.height) = (self.parent.deviceFrame.size.height, self.parent.deviceFrame.size.width)
+                    }
+                }
+            }
+            self.recalculatingTextViewSize()
+            
+        }
         
     }
-
+    
     
 }

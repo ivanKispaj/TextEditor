@@ -222,9 +222,9 @@ final class InputAccessoryView: UIInputView {
         accessoryContentView.translatesAutoresizingMaskIntoConstraints = false
         NSLayoutConstraint.activate([
             accessoryContentView.leadingAnchor.constraint(equalTo: self.leadingAnchor, constant: padding),
-            accessoryContentView.trailingAnchor.constraint(equalTo: self.trailingAnchor, constant: -padding),
-            accessoryContentView.topAnchor.constraint(equalTo: self.topAnchor),
-            accessoryContentView.bottomAnchor.constraint(equalTo: self.bottomAnchor)
+            self.trailingAnchor.constraint(equalTo: accessoryContentView.trailingAnchor, constant: padding),
+            accessoryContentView.centerYAnchor.constraint(equalTo: self.centerYAnchor),
+            
         ])
     }
     
@@ -435,6 +435,7 @@ final class InputAccessoryView: UIInputView {
         alignmentButton.setImage(UIImage(systemName: textAlignment.imageName, withConfiguration: imageConf), for: .normal)
         
         for attribute in typingAttributes {
+
             if attribute.key == .font {
                 if let font = attribute.value as? UIFont {
                     let fontSize = font.pointSize
@@ -451,7 +452,8 @@ final class InputAccessoryView: UIInputView {
                         self.stateTextStyle.largeHeader = .on
                         self.stateTextStyle.largeHeader = .off
                     }
-                    textFontLabel.text = "\(Int(fontSize))"
+                    
+                  //  textFontLabel.text = "\(Int(fontSize))"
                     let isBold = (font == UIFont.boldSystemFont(ofSize: fontSize))
                     let isItalic = (font == UIFont.italicSystemFont(ofSize: fontSize))
                     
@@ -463,7 +465,7 @@ final class InputAccessoryView: UIInputView {
                     
                 }
             }
-            
+
             if attribute.key == .underlineStyle {
                 if let style = attribute.value as? Int {
                     style == NSUnderlineStyle.single.rawValue ? (self.stateTextFormat.underline = .on) : (self.stateTextFormat.underline = .off)
@@ -487,6 +489,7 @@ final class InputAccessoryView: UIInputView {
                     self.selectedColor = color
                     self.showHideColorPalete.tintColor = color
                 }
+                
                 for button in colorButtons {
                     if button.tintColor == textColor {
                         button.setImage(UIImage(systemName: "checkmark.circle.fill", withConfiguration: colorConf), for: .normal)
