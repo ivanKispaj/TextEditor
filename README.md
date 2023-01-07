@@ -5,6 +5,11 @@
 <h2>Minimum IOS version: IOS 15...</h2>
 <p>Installation using Swift package manager: <a href="https://github.com/ivanKispaj/TextEditor">https://github.com/ivanKispaj/TextEditor.git </a> </p>
 <p>After run "Update Package" to update the package to the latest version </p>
+<h3>Preview </h3>
+
+![TextEditor](https://user-images.githubusercontent.com/91827767/211144170-315172f2-b52d-4560-aefb-f99c1b2d5308.gif)
+
+
 <h3>  Using </h3>
 <h4> Add the package to your app </h4>
 <p> To redraw the image in proportion to the orientation of the screen, you need to change the value of the transmitted property: deviceOrientation. </p>
