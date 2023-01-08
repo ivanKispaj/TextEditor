@@ -269,7 +269,7 @@ struct TextEditorWrapper: UIViewControllerRepresentable {
         
         /// recalculating textview height
         private func recalculatingTextViewSize() {
-            //   self.prepareNSAttachmentBound()
+            self.prepareNSAttachmentBound()
             let size = CGSize(width: parent.controller.view.frame.width, height: .infinity)
             let estimatedSize = parent.textView.sizeThatFits(size)
             if parent.height != estimatedSize.height {
@@ -458,20 +458,12 @@ struct TextEditorWrapper: UIViewControllerRepresentable {
         //MARK: - the method is triggered when the screen orientation changes
         /// And changes the width of the screen with the height
         @objc func handleForChangeDeviceOrientation(_ notification: Notification) {
-            if let deviceOrientation = notification.userInfo?.values.first as? DeviceOrientation {
-                
-                switch deviceOrientation {
-                case .Landscape:
-                    if self.parent.deviceFrame.width < self.parent.deviceFrame.height {
-                        (self.parent.deviceFrame.size.width, self.parent.deviceFrame.size.height) = (self.parent.deviceFrame.size.height, self.parent.deviceFrame.size.width)
-                    }
-                case .portrait:
-                    if self.parent.deviceFrame.width > self.parent.deviceFrame.height {
-                        (self.parent.deviceFrame.size.width, self.parent.deviceFrame.size.height) = (self.parent.deviceFrame.size.height, self.parent.deviceFrame.size.width)
-                    }
-                }
+            
+            if let frame = notification.userInfo?.values.first as? CGRect {
+                self.parent.deviceFrame = frame
+                self.recalculatingTextViewSize()
             }
-            self.recalculatingTextViewSize()
+           
             
         }
         

@@ -14,7 +14,6 @@ public struct TextEditor: View , Equatable {
         true
     }
     
-    private var deviceOrientation: DeviceOrientation
     private var deviceFrame: CGRect
     @State var dynamicHeight: CGFloat = 100
     private let attributedText: NSMutableAttributedString
@@ -22,7 +21,6 @@ public struct TextEditor: View , Equatable {
     private let accessorySections: Array<EditorSection>
     private let onCommit: (NSAttributedString) -> Void
     public init(
-        deviceOrientation:  DeviceOrientation,
         attributedText: NSMutableAttributedString,
         placeholder: String = "",
         accessory sections: Array<EditorSection> = EditorSection.allCases,
@@ -30,14 +28,13 @@ public struct TextEditor: View , Equatable {
         onCommit: @escaping ((NSAttributedString) -> Void)
     ) {
         self.attributedText = attributedText
-        self.deviceOrientation = deviceOrientation
         self.placeholder = placeholder
         self.accessorySections = sections
         self.deviceFrame = deviceFrame
         self.onCommit = onCommit
         NotificationCenter.default.post(name: NSNotification.Name("deviceOrientationChanged"),
             object: nil,
-            userInfo: ["deviceOrientation": deviceOrientation])
+            userInfo: ["deviceOrientation": deviceFrame])
     }
     
     public var body: some View {
