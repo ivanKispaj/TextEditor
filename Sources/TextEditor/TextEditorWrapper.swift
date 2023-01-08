@@ -77,6 +77,9 @@ struct TextEditorWrapper: UIViewControllerRepresentable {
         return Coordinator(self)
     }
     
+    func getAttributedtext() -> NSAttributedString {
+        self.textView.attributedText
+    }
     
     //MARK: - The first TextView setup
     private func setUpTextView() {
@@ -120,10 +123,7 @@ struct TextEditorWrapper: UIViewControllerRepresentable {
     class Coordinator: NSObject, UITextViewDelegate, UIImagePickerControllerDelegate, UINavigationControllerDelegate, TextEditorDelegate {
         var parent: TextEditorWrapper
         var fontName: String
-//
-//        private var isBold = false
-//        private var isItalic = false
-//
+
         init(_ parent: TextEditorWrapper) {
             self.parent = parent
             self.fontName = parent.defaultFontName
@@ -502,7 +502,7 @@ class TextViewController: UIViewController {
         if var mainParent = parentView {
             NotificationCenter.default.removeObserver(self, name:  NSNotification.Name("willChangeViewSize"), object: nil)
             mainParent.isAddedObserver.toggle()
-            mainParent.onCommit(mainParent.attributedText)
+            mainParent.onCommit(mainParent.getAttributedtext())
         }
     }
 }
