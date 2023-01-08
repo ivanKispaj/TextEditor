@@ -11,11 +11,11 @@ import UIKit
 @available(iOS 15.0, *)
 struct TextEditorWrapper: UIViewControllerRepresentable {
     
+    var isAddedObserver: Bool = false
     
-    private var deviceFrame: CGRect
-    private var attributedText: NSMutableAttributedString
+    private(set) var attributedText: NSMutableAttributedString
     @Binding private var height: CGFloat
-    private var controller: UIViewController
+    private var controller: TextViewController
     private var textView: UITextView
     private var accessoryView: InputAccessoryView
     private let placeholder: String
@@ -24,8 +24,7 @@ struct TextEditorWrapper: UIViewControllerRepresentable {
     private let hintColor = UIColor.label
     private var defaultFontSize: CGFloat = 24
     private let defaultFontName = "AvenirNext-Regular"
-    private let onCommit: ((NSAttributedString) -> Void)
-    private var isImagePicker: Bool = false
+    let onCommit: ((NSAttributedString) -> Void)
     private var imageBorderWidth: CGFloat = 10
     private var isHeader: Bool = false
     private var defaultFont: UIFont {
@@ -38,17 +37,15 @@ struct TextEditorWrapper: UIViewControllerRepresentable {
         height: Binding<CGFloat>,
         placeholder: String,
         sections: Array<EditorSection>,
-        deviceFrame: CGRect,
         onCommit: @escaping ((NSAttributedString) -> Void)
     ) {
         
         self.attributedText = attributedText
         self._height = height
-        self.controller = UIViewController()
+        self.controller = TextViewController()
         self.textView = UITextView()
         self.placeholder = placeholder
         self.onCommit = onCommit
-        self.deviceFrame = deviceFrame
         self.accessoryView = InputAccessoryView(frame: .zero, inputViewStyle: .default, accessorySections: sections)
         
     }
@@ -57,24 +54,27 @@ struct TextEditorWrapper: UIViewControllerRepresentable {
     func makeUIViewController(context: Context) -> some UIViewController {
         setUpTextView()
         let sections = accessoryView.accessorySections
-        let rect = CGRect(x: 0, y: 0, width: deviceFrame.width, height: sections.contains(.color) ? 80 : 50)
+        let rect = CGRect(x: 0, y: 0, width: self.controller.view.frame.width, height: sections.contains(.color) ? 80 : 50)
         self.accessoryView.frame = rect
         textView.delegate = context.coordinator
         context.coordinator.textViewDidChange(textView)
         
         accessoryView.delegate = context.coordinator
         textView.inputAccessoryView = accessoryView
+        
+        
         return controller
     }
     
     // updateUIViewController method
     func updateUIViewController(_ uiViewController: UIViewControllerType, context: Context) {
-        
     }
+    
     
     // makeCoordinator method
     func makeCoordinator() -> Coordinator {
-        Coordinator(self)
+        controller.parentView = self
+        return Coordinator(self)
     }
     
     
@@ -104,8 +104,8 @@ struct TextEditorWrapper: UIViewControllerRepresentable {
         textView.setContentCompressionResistancePriority(.defaultLow, for: .horizontal)
         textView.backgroundColor = .systemBackground
         controller.view.addSubview(textView)
-        
         textView.translatesAutoresizingMaskIntoConstraints = false
+        
         NSLayoutConstraint.activate([
             textView.centerXAnchor.constraint(equalTo: controller.view.centerXAnchor),
             textView.centerYAnchor.constraint(equalTo: controller.view.centerYAnchor),
@@ -120,29 +120,28 @@ struct TextEditorWrapper: UIViewControllerRepresentable {
     class Coordinator: NSObject, UITextViewDelegate, UIImagePickerControllerDelegate, UINavigationControllerDelegate, TextEditorDelegate {
         var parent: TextEditorWrapper
         var fontName: String
-        
-        private var isBold = false
-        private var isItalic = false
-        
+//
+//        private var isBold = false
+//        private var isItalic = false
+//
         init(_ parent: TextEditorWrapper) {
             self.parent = parent
             self.fontName = parent.defaultFontName
-            
         }
         
         // MARK: - Image Picker delegate method
         
         func imagePickerController(_ picker: UIImagePickerController, didFinishPickingMediaWithInfo info: [UIImagePickerController.InfoKey : Any]) {
-            if let img = info[UIImagePickerController.InfoKey.originalImage] as? UIImage, let image = img.roundedImageWithBorder(color: .secondarySystemBackground,borderWidth: parent.imageBorderWidth) {
+            if let img = info[UIImagePickerController.InfoKey.originalImage] as? UIImage, let image = img.roundedImageWithBorder(color: .systemGray5,borderWidth: parent.imageBorderWidth) {
                 
                 textViewDidBeginEditing(parent.textView)
                 let newString = NSMutableAttributedString(attributedString: parent.textView.attributedText)
                 var rect: CGSize
-                
-                if image.size.width <= parent.deviceFrame.width {
+                let width: CGFloat = parent.controller.view.frame.width
+                if image.size.width <= width {
                     rect = CGSize(width: image.size.width, height: image.size.height)
                 } else {
-                    rect = getRectForAttachment(image: image, deviceSize: parent.deviceFrame.size)
+                    rect = getRectForAttachment(image: image, width: width)
                 }
                 
                 let textAttachment = NSTextAttachment(image: image)
@@ -150,13 +149,11 @@ struct TextEditorWrapper: UIViewControllerRepresentable {
                 textAttachment.image?.withTintColor(.label)
                 let attachmentString = NSAttributedString(attachment: textAttachment)
                 
-                
                 let font = UIFont(name: parent.defaultFontName, size: TextStyleFormat.plainText.rawValue)!
                 let color = UIColor.label
                 var attr: [NSAttributedString.Key : Any] = [:]
                 attr[.font] = font
                 attr[.foregroundColor] = color
-                
                 
                 newString.append(NSAttributedString(string: "\n"))
                 let range = (newString.string as NSString).range(of: newString.string)
@@ -165,15 +162,10 @@ struct TextEditorWrapper: UIViewControllerRepresentable {
                 newString.addAttributes(attr, range: NSRange(location: range.length, length: 2))
                 
                 parent.textView.attributedText = newString
-                textViewDidChange(parent.textView)
-                self.textStyle(.plainText)
-                self.textColor(color: parent.hintColor)
+              
             }
-            parent.isImagePicker = false
-            DispatchQueue.main.async {
-                self.parent.textView.becomeFirstResponder()
-
-            }
+            textViewDidChange(parent.textView)
+            parent.textView.becomeFirstResponder()
             picker.dismiss(animated: true, completion: nil)
         }
         
@@ -181,11 +173,9 @@ struct TextEditorWrapper: UIViewControllerRepresentable {
         /// - parameter image: UIImage for which we calculate the size
         /// - parameter deviceSize: CGSize devices
         /// - returns:  image CGSize calculated in proportion to the screen size
-        func getRectForAttachment(image: UIImage, deviceSize: CGSize) -> CGSize {
-            var width = deviceSize.width
-            if deviceSize.width > deviceSize.height {
-                width -= parent.imageBorderWidth
-            }
+        func getRectForAttachment(image: UIImage, width: CGFloat) -> CGSize {
+            var newWidth = width
+            newWidth -= parent.imageBorderWidth
             let ratio = image.size.width / width
             let imageH = image.size.height / ratio
             return CGSize(width: width, height: imageH)
@@ -196,7 +186,6 @@ struct TextEditorWrapper: UIViewControllerRepresentable {
         func textBold() {
             let attributes = parent.textView.selectedRange.isEmpty ? parent.textView.typingAttributes : selectedAttributes
             let fontSize = getFontSize(attributes: attributes)
-            
             let defaultFont = UIFont.systemFont(ofSize: fontSize)
             textEffect(type: UIFont.self, key: .font, value: UIFont.boldSystemFont(ofSize: fontSize), defaultValue: defaultFont)
         }
@@ -259,7 +248,6 @@ struct TextEditorWrapper: UIViewControllerRepresentable {
             imagePicker.delegate = self
             imagePicker.allowsEditing = true
             imagePicker.sourceType = sourceType
-            parent.isImagePicker = true
             parent.controller.present(imagePicker, animated: true)
         }
         
@@ -269,9 +257,10 @@ struct TextEditorWrapper: UIViewControllerRepresentable {
         
         /// recalculating textview height
         private func recalculatingTextViewSize() {
-            self.prepareNSAttachmentBound()
+           
             let size = CGSize(width: parent.controller.view.frame.width, height: .infinity)
             let estimatedSize = parent.textView.sizeThatFits(size)
+            
             if parent.height != estimatedSize.height {
                 DispatchQueue.main.async {
                     self.parent.height = estimatedSize.height
@@ -282,20 +271,38 @@ struct TextEditorWrapper: UIViewControllerRepresentable {
         
         // method for recalculating nstextattachmentcell bounds
         private func prepareNSAttachmentBound() {
+           
             let text: NSMutableAttributedString = NSMutableAttributedString(attributedString: parent.textView.attributedText)
-            let frame = parent.deviceFrame
-            let width  = CGRectGetWidth(frame)
+            let width: CGFloat = parent.controller.view.frame.width
+            
             text.enumerateAttribute(.attachment, in: NSRange(location: 0, length: text.length), options: [], using: { [width] (object, range, pointer) in
-                let textViewAsAny: Any = parent.textView
-                if let attachment = object as? NSTextAttachment, let img = attachment.image(forBounds: parent.textView.bounds, textContainer: textViewAsAny as? NSTextContainer, characterIndex: range.location) {
-                    let rect = getRectForAttachment(image: img, deviceSize: frame.size)
+                if let attachment = object as? NSTextAttachment, let img = attachment.image { //(forBounds: parent.textView.bounds, textContainer: textViewAsAny as? NSTextContainer, characterIndex: range.location) {
+                    let newSize = getRectForAttachment(image: img, width: width)
+                    textViewDidBeginEditing(parent.textView)
+                    let font = UIFont(name: parent.defaultFontName, size: TextStyleFormat.plainText.rawValue)!
+                    let color = UIColor.label
+                    var attr: [NSAttributedString.Key : Any] = [:]
+                    attr[.font] = font
+                    attr[.foregroundColor] = color
+                    text.deleteCharacters(in: range)
+                    
                     if img.size.width <= width {
                         attachment.bounds = CGRect(x: 0, y: 0, width: img.size.width, height: img.size.height)
-                        return
+                    
+                    } else {
+                        attachment.bounds = CGRect(x: 0, y: 0, width: newSize.width, height: newSize.height)
+                    
                     }
-                    attachment.bounds = CGRect(x: 0, y: 0, width: rect.width, height: rect.height)
+                    let attachmentString = NSAttributedString(attachment: attachment)
+                    text.insert(attachmentString, at: range.location)
+                    text.addAttributes(attr, range: range)
+                    parent.textView.attributedText = text
+                    textViewDidChange(parent.textView)
+
+                    
                 }
             })
+            
         }
         
         // Add text attributes to text view
@@ -411,7 +418,12 @@ struct TextEditorWrapper: UIViewControllerRepresentable {
         
         func textViewDidBeginEditing(_ textView: UITextView) {
             ///adding an observer to track the position of the screen
-            NotificationCenter.default.addObserver(self, selector: #selector(handleForChangeDeviceOrientation), name: NSNotification.Name("deviceOrientationChanged"), object: nil)
+            if !parent.isAddedObserver {
+                
+                NotificationCenter.default.addObserver(self, selector: #selector(handleForChange), name: NSNotification.Name("willChangeViewSize"), object: nil)
+                parent.isAddedObserver.toggle()
+            }
+            
             
             if textView.attributedText.string == parent.placeholder {
                 parent.isHeader.toggle()
@@ -429,10 +441,7 @@ struct TextEditorWrapper: UIViewControllerRepresentable {
         }
         
         func textViewDidEndEditing(_ textView: UITextView) {
-            
-            if !parent.isImagePicker {
-                parent.onCommit(textView.attributedText)
-            }
+
         }
         
         func textViewDidChange(_ textView: UITextView) {
@@ -455,19 +464,45 @@ struct TextEditorWrapper: UIViewControllerRepresentable {
             textView.scrollRangeToVisible(textView.selectedRange)
         }
         
-        //MARK: - the method is triggered when the screen orientation changes
-        /// And changes the width of the screen with the height
-        @objc func handleForChangeDeviceOrientation(_ notification: Notification) {
-            
-            if let frame = notification.userInfo?.values.first as? CGRect {
-                self.parent.deviceFrame = frame
-                self.recalculatingTextViewSize()
-            }
-           
-            
-        }
         
+        @objc func handleForChange(_ notification: Notification) {
+            if notification.userInfo?.values.first is CGSize {
+                textViewDidEndEditing(parent.textView)
+                  self.prepareNSAttachmentBound()
+                
+                
+            }
+        }
+    }
+}
+
+
+
+@available(iOS 15.0, *)
+class TextViewController: UIViewController {
+    
+    var parentView: TextEditorWrapper?
+    private var newSize: CGSize  = CGSize(width: 0, height: 0) {
+        didSet {
+            if oldValue.width != newSize.width {
+                
+                NotificationCenter.default.post(name: NSNotification.Name("willChangeViewSize"),
+                                    object: nil,
+                                                userInfo: ["newSize": newSize])
+            }
+        }
     }
     
-    
+    override func viewWillLayoutSubviews() {
+         newSize = self.view.frame.size
+        
+   
+    }
+    override func viewDidDisappear(_ animated: Bool) {
+        if var mainParent = parentView {
+            NotificationCenter.default.removeObserver(self, name:  NSNotification.Name("willChangeViewSize"), object: nil)
+            mainParent.isAddedObserver.toggle()
+            mainParent.onCommit(mainParent.attributedText)
+        }
+    }
 }
